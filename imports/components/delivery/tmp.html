@@ -1,0 +1,129 @@
+<div id="podModal" class="modal fade" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Delivery Details</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div ng-if="imagesArchived" class="container text-center text-warning">Images and Signatures have been archived, but will be included in document resends.</div>
+                    <div style = "display:inline" ng-repeat="photo in docs.pod[docIndex].images track by $index">
+                        <img
+                                ng-click="showImage(docs.pod[docIndex].images,$index,'pod',docs.pod[docIndex].finalized)"
+                                style="display: inline;margin: auto; padding-top: 10px; max-width:80px"
+                                class="img-responsive img-rounded"
+                                ng-src="{{imageBaseUrl}}{{photo}}">
+                    </div>
+                    <div ng-if="! docs.pod[docIndex].finalized" class="text-right">
+                        <br><button style="; margin-left: 15px;" ng-click="capturePodImage()" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> Image</button><br>
+                    </div>
+                </div>
+
+                <form class="form" name="tripForm" role=form novalidate>
+                    <div class=container>
+                        <fieldset>
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-4">
+                                    Departure Time:
+                                    <input id="departTime" name="departTime" required class="form-control" readonly datetime-picker ng-model="docs.pod[docIndex].departTime" />
+
+                                    Arrival Time:
+                                    <input id="arriveTime" name="arriveTime" required class="form-control" readonly datetime-picker ng-model="docs.pod[docIndex].arriveTime" />
+                                </div>
+
+                                <div class="col-xs-12 col-sm-5">
+                                    Kilometers Before
+                                    <input required class="form-control"  type=number ng-model="docs.pod[docIndex].kmBefore">
+
+
+                                    Kilometers After
+                                    <input required class="form-control"  type=number ng-model="docs.pod[docIndex].kmAfter">
+                                </div>
+                                <div class="col-xs-12 col-sm-4">
+                                    Truck Registration Number
+                                    <input required class="form-control"  type=text ng-model="docs.pod[docIndex].truckRegNo">
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                </form>
+
+                <table style="width:100%" class="table-condensed table-hover">
+                <thead>
+                <tr>
+                    <th>Tank</th>
+                    <th>Product</th>
+                    <th>
+                        <div class=row>
+                            <div class="col-sm-6">After</div>
+                            <div class="col-sm-6">Before</div>
+                        </div>
+                    </th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-click="editTankReading(tank.no)" ng-repeat="tank in podDetails[docIndex].tanks | orderBy: 'no'">
+                    <td>
+                        #{{ tank.no | number }}&nbsp;
+                    </td>
+                    <td>
+                        <img style="min-height:13px; max-height: 19px" class="img-responsive" ng-src="images/product/{{tank.product}}.png">
+                    </td>
+                    <td>
+                        <div class=row>
+                            <div class="col-sm-6">{{ tank.after | number }}&nbsp;<em>l</em></div>
+                            <div class="col-sm-6">{{ tank.before | number }}&nbsp;<em>l</em></div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>{{ (tank.after - tank.before) | number }}&nbsp;</strong><em>l</em>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <button ng-if="PODHasNoSignature()" ng-click="editTankReading()" type="button" class="btn btn-primary">Add Reading</button>
+                        <div ng-if="(! PODHasNoSignature() ) && ( ! docs.pod[docIndex].finalized)" class="alert text-right alert-info" role="alert">
+                            <div style="width:100%;" class="text-left">To change this document remove the signatures</div>
+                            <button style="" ng-show="docs.pod[docIndex].signature" ng-click="removeSignature('pod')" class="btn btn-default">Remove Signatures</button>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6">
+                        <div ng-if="docs.pod[docIndex].signature.customer" style="margin:auto;display:table" class="text-center" >
+                            <img style="max-height: 80px" class="img-responsive" src="{{imageBaseUrl}}{{docs.pod[docIndex].signature.customer.image}}">
+                            <p>{{docs.pod[docIndex].signature.customer.signee}}<br>
+                                <small>{{docs.pod[docIndex].signature.customer.time | date : 'H:mm, MMM d, yyyy' }}</small></p>
+                            Customer
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6">
+                        <div ng-if="docs.pod[docIndex].signature.driver" style="margin:auto;display:table" class="text-center" >
+                            <img style="max-height: 80px" class="img-responsive" src="{{imageBaseUrl}}{{docs.pod[docIndex].signature.driver.image}}">
+                            <p>{{docs.pod[docIndex].signature.driver.signee}}<br>
+                                <small>{{docs.pod[docIndex].signature.driver.time | date : 'H:mm, MMM d, yyyy' }}</small></p>
+                            Driver
+                        </div>
+                    </div>
+                    <div class="col-xs-12 text-center">
+                        <button style="float: right;" ng-hide="docs.pod[docIndex].signature.driver.image" ng-disabled="0 == podDetails[docIndex].tanks.length || tripForm.$invalid" ng-click="captureSignature('pod', 'driver')" class="btn btn-default">Add Driver Signature</button>
+                        <button style="float: right;" ng-hide="docs.pod[docIndex].signature.customer.image" ng-disabled="0 == podDetails[docIndex].tanks.length || tripForm.$invalid" ng-click="captureSignature('pod', 'customer')" class="btn btn-default">Add Customer Signature</button>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 1px; width: 100%">
+                &nbsp;
+            </div>
+
+            <div class="modal-footer">
+                <div>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button ng-click="savePOD()" ng-if="! docs.pod[docIndex].finalized" ng-disabled="PODHasNoSignature() || !(docs.pod[docIndex].images.length)" type="button" class="btn btn-primary">Finalise and Send</button>
+                    <button ng-click="sendDoc('pod')" ng-if="docs.pod[docIndex].finalized" type="button" class="btn btn-primary">Resend</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
